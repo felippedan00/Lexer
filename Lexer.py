@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 import enum
+import sys
 from dataclasses import dataclass
 from typing import Iterator
+
+
+# O limite dos inteiros será validado na análise semântica.
+if hasattr(sys, "set_int_max_str_digits"):
+    sys.set_int_max_str_digits(0)
 
 
 class TokenKind(enum.Enum):
@@ -248,6 +254,12 @@ class Lexer:
                         start_col,
                     )
                 e = self.source[self.pos]
+                if e == "\n" or e == "\r":
+                    raise LexerError(
+                        "quebra de linha em string não terminada",
+                        self.line,
+                        self.column,
+                    )
                 if e not in _ESCAPES:
                     raise LexerError(
                         "sequência de escape inválida", esc_line, esc_col
